@@ -1,11 +1,23 @@
 let field = document.querySelector('.field');
+let timer = document.querySelector('.timer');
+let moves = document.querySelector('.moves');
+let pause = document.querySelector('.pause')
 
 
-let fieldMasGame = [];
-let noneBlock;
+let fieldMasGame, noneBlock, moveCount, time, difficult = 3;
 
-function StartNewGame(size) {
-    noneBlock = [size - 1, size - 1];
+function StartNewGame(size = 3, m = 0, t = 0, mas = [], block = [size - 1, size - 1]) {
+    moveCount = m;
+    time = t;
+    fieldMasGame = mas;
+    noneBlock = block;
+    if(t==0)
+        newGame(size);
+    timerGame();
+    drawField(size);
+}
+
+function newGame(size) {
     fieldMas = Array(size ** 2 - 1).fill(1).map((v, i) => i + 1);
     shuffle(fieldMas);
     let a = [];
@@ -18,7 +30,16 @@ function StartNewGame(size) {
     })
     a.push('');
     fieldMasGame.push(a);
-    drawField(size);
+}
+
+function clearField()
+{
+    let menu = field.firstElementChild;
+    while (field.firstElementChild) {
+        field.firstChild.remove();
+    }
+    field.appendChild(menu);
+    document.querySelector('.menu').style.display = 'none';
 }
 
 function shuffle(array) {
@@ -41,13 +62,15 @@ function drawField(size) {
             field.appendChild(box);
         }
     }
-    field.lastChild.classList.add('noneBox');
+    document.querySelector(`[data-index='${noneBlock[0] + "_" + noneBlock[1]}']`).classList.add('noneBox');
 }
 
 field.addEventListener('click', (e) => {
-    let cl = e.target.dataset.index;
-    let index = cl.split('_');
-    check(index);
+    if (e.target.dataset.index) {
+        let cl = e.target.dataset.index;
+        let index = cl.split('_');
+        check(index);
+    }
 })
 
 function check([i, j]) {
@@ -80,8 +103,8 @@ function changeIndex(i, j, noneI, noneJ) {
     fieldMasGame[i][j] = "";
     fieldMasGame[noneI][noneJ] = b;
     noneBlock = [i, j];
-    if(checkWin())
-    {
+    moves.innerHTML = "Moves " + (++moveCount);
+    if (checkWin()) {
         alert('Win');
     }
 }
@@ -89,7 +112,7 @@ function changeIndex(i, j, noneI, noneJ) {
 function checkWin() {
     let win = true;
     let t = fieldMasGame.flat();
-    if(t.indexOf('')!=t.length-1)
+    if (t.indexOf('') != t.length - 1)
         return false;
     for (let i = 0; i < t.length - 2; i++)
         if (t[i] > t[i + 1]) {
@@ -98,5 +121,92 @@ function checkWin() {
         }
     return win;
 }
+let timerid;
+document.querySelector('.menu').addEventListener('click', (e) => {
+    if (e.target.dataset.menuitem) {
+        menubar(e.target.dataset.menuitem);
+    }
+});
 
-StartNewGame(3);
+pause.addEventListener('click', () => {
+    document.querySelector('.menu').style.display = 'block';
+    clearInterval(timerid);
+})
+
+function timerGame() {
+    timerid = setInterval(() => {
+        timer.innerHTML = "Time " + (++time)
+    }, 1000)
+}
+
+
+function menubar(num) {
+    if (num == 1) {
+        timerGame();
+        document.querySelector('.menu').style.display = 'none';
+    }
+    if (num == 2) {
+        clearField();
+        timer.innerHTML = "Time " + 0;
+        moves.innerHTML = "Moves " + 0;
+        StartNewGame(difficult);
+    }
+    if (num == 3) {
+        let menu = document.querySelector('.menu').firstElementChild;
+        document.querySelector('.menu').firstElementChild.remove();
+        let s = document.createElement('select');
+        let btn = document.createElement('button');
+        s.options[0] = new Option("выберите сложность", "3");
+        s.options[1] = new Option("3/3", "3");
+        s.options[2] = new Option("4/4", "4");
+        s.options[3] = new Option("5/5", "5");
+        s.options[4] = new Option("6/6", "6");
+        s.options[5] = new Option("7/7", "7");
+        s.options[6] = new Option("8/8", "8");
+        document.querySelector('.menu').appendChild(s);
+        btn.innerHTML = "GoBack";
+        document.querySelector('.menu').appendChild(btn);
+        s.addEventListener('change', () => {
+            difficult = s.value;
+        })
+        btn.addEventListener('click', () => {
+            document.querySelector('.menu').firstElementChild.remove();
+            document.querySelector('.menu').firstElementChild.remove();
+            document.querySelector('.menu').appendChild(menu);
+        })
+    }
+    if (num == 4) {
+        let saveobj =
+        {
+            size: difficult,
+            move: moveCount,
+            time: time,
+            field: fieldMasGame,
+            block: noneBlock
+        }
+        let savelocal = JSON.stringify(saveobj);
+        localStorage.setItem(new Date().getTime(), savelocal);
+    }
+    if (num == 5) {
+        let menu = document.querySelector('.menu').firstElementChild;
+        document.querySelector('.menu').firstElementChild.remove();
+        let div = document.createElement('div');
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            let a = document.createElement('button');
+            a.innerHTML = key;
+            div.appendChild(a);
+        }
+        document.querySelector('.menu').appendChild(div);
+        div.addEventListener('click', (e) => {
+            div.remove();
+            document.querySelector('.menu').appendChild(menu);
+            let download= JSON.parse(localStorage.getItem(e.target.innerHTML));
+            clearField();
+            timer.innerHTML = "Time " + download.time;
+            moves.innerHTML = "Moves " + download.move;
+            StartNewGame(download.size,download.move,download.time,download.field,download.block);
+        })
+    }
+}
+StartNewGame();

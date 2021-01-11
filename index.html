@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,29 @@
     <script src="index.js" defer></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="field"></div>
+    <div class="gameInfo">
+        <div class="timer">
+            Time 00:00
+        </div>
+        <div class="moves">
+            Moves 0
+        </div>
+        <a href="#" class="pause">Pause Game</a>
+    </div>
+    <div class="field">
+        <div class="menu">
+            <ul>
+                <li data-menuItem="1">Продолжить</li>
+                <li data-menuItem="2">Новая игра</li>
+                <li data-menuItem="3">Сложность</li>
+                <li data-menuItem="4">Сохранить игру</li>
+                <li data-menuItem="5">Загрузить игру</li>
+                <li data-menuItem="6">Правила</li>
+            </ul>
+        </div>
+    </div>
 </body>
+
 </html>
